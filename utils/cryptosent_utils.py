@@ -3,9 +3,11 @@ from psaw import PushshiftAPI
 from dateutil import parser
 import datetime as dt
 import pandas as pd
+from update_checker import UpdateResult
 
 
-def date_parser(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M')
+
+def date_parser(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
 
 def access_reddit():
     reddit = praw.Reddit(client_id="f0b33JSRVGyB8p-ua4_58g",#my client id
@@ -41,8 +43,9 @@ def get_subreddit(start:str, end:str, subreddit:str,*args, **kwargs):
                             limit=limit)
 
     #Columns of the DataFrame
-    features=['date','title','body', 'score','num_comments', 'id', 'subreddit', 
-          'submission','redditor','url']
+    features=['date','title','body', 'score','ups','downs',
+              'upvote_ratio','num_comments', 'id', 'subreddit', 
+              'submission','redditor','url']
 
     #Collect Data in the DataFrame
     posts=[]
@@ -52,6 +55,9 @@ def get_subreddit(start:str, end:str, subreddit:str,*args, **kwargs):
                     post.title,
                     post.selftext,
                     post.score,
+                    post.ups,
+                    post.downs,
+                    post.upvote_ratio,
                     post.num_comments,
                     post.id, 
                     post.subreddit,
@@ -64,3 +70,43 @@ def get_subreddit(start:str, end:str, subreddit:str,*args, **kwargs):
     df['user']=df.redditor.astype(str)
 
     return df
+
+
+
+
+def get_comments(submissions):
+    """
+    submissions: reddit.submission object list
+    """
+    submissionList = []
+    for s in submissions:
+        s.comments.replace_more(limit=None)
+        for comm in s.comments.list():
+            try: 
+                submissionList.append(
+                                        [
+                                        comm.created,
+                                        comm.author.name,
+                                        comm.body,
+                                        comm.depth,
+                                        comm.score,
+                                        comm.ups,
+                                        comm.downs,
+                                        comm.author.id,
+                                        comm.parent_id,
+                                        comm.id,
+                                        comm.submission.id
+                                        ]
+                                    )
+            except AttributeError:
+                pass
+        
+
+    comm_features=['created','user','body',
+           'depth','score','ups','downs',
+           'author_id','parent_id','comment_id','submission_id']
+
+    c=pd.DataFrame(submissionList,columns=comm_features)
+    return c
+
+    
