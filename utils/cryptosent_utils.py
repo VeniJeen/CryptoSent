@@ -4,8 +4,58 @@ from dateutil import parser
 import datetime as dt
 import pandas as pd
 from update_checker import UpdateResult
+import zstandard 
+import json
+import time
+import datetime
 
 
+def decompose_zstd_streaming(zst_files, subreddits_list):
+    
+    for file_no,zst_file_path in enumerate(zst_files):
+        slist=[]
+        df_out=pd.DataFrame()
+        count=0
+        chunk_count=0
+        iteration=0
+        program_starts = time.time()
+        name=zst_file_path.split('\\')[-1].split('.')[0]
+        print('\nProcessing File:',name,'  ', file_no+1,'/',len(zst_files))
+        with open(zst_file_path, 'rb') as fh:
+            dctx = zstandard.ZstdDecompressor(max_window_size=2147483648)
+            with dctx.stream_reader(fh) as reader:
+                previous_line = ""
+                while True:
+                    now = time.time()
+                    chunk = reader.read(2**24)  # 16mb chunks
+                    chunk_count+=1
+                    if not chunk:
+                        break
+
+                    string_data = chunk.decode('utf-8')
+                    lines = string_data.split("\n")
+                    for i, line in enumerate(lines[:-1]):
+                        if i == 0:
+                            line = previous_line + line
+                        object_chunk = json.loads(line)
+                        count+=1
+
+                        if any(object_chunk['subreddit'] in s for s in subreddits_list):
+                            slist.append(object_chunk)
+                    if divmod(count,5000000)[0]>iteration:
+                        iteration=divmod(count,5000000)[0]
+                        print('')
+                        print("|t:",str(datetime.timedelta(seconds=(now - program_starts))).split('.')[0],
+                              '|\t|Saved Rows:',len(slist)/1000,'K',
+                              '|\t|Raw Rows:',count/1000,'K',
+                              '|\t|',chunk_count*16,'MB Proccesed|')
+                    #if count > 800000: break
+                    previous_line = lines[-1]
+
+        df_out=pd.DataFrame(slist)
+        df_out.to_csv(f'{name}_crypto_subreddits.csv')
+
+        
 
 def date_parser(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
 
