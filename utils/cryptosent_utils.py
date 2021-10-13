@@ -10,6 +10,10 @@ import time
 import datetime
 
 
+def get_submissions_raw(): return pd.read_csv(r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\submissions_2019__2021_06.csv")
+
+def get_comments_raw(): return pd.read_csv(r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments_2019__2021_06.csv")
+
 def decompose_zstd_streaming(zst_files, subreddits_list):
     
     for file_no,zst_file_path in enumerate(zst_files):
@@ -57,7 +61,7 @@ def decompose_zstd_streaming(zst_files, subreddits_list):
 
         
 
-def date_parser(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
+def date_parser_utc(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
 
 def access_reddit():
     reddit = praw.Reddit(client_id="f0b33JSRVGyB8p-ua4_58g",#my client id
