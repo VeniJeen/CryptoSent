@@ -14,8 +14,71 @@ def get_submissions_raw(): return pd.read_csv(r"C:\Users\Ben\Desktop\Diplomatiki
 
 def get_comments_raw(): return pd.read_csv(r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments_2019__2021_06.csv")
 
+
+
+def date_parser_utc(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
+
+
+
+def submission_raw_processing(s):
+    """
+    input get_submission_raw for first level processing
+    """
+    #col drop
+    s=s.drop(columns=['Unnamed: 0','domain.1'])
+
+    #cols order
+    cols_order_subs=['created_utc','author',
+                    'num_comments','score','title','selftext',
+                    'subreddit','subreddit_subscribers','id',  
+                    'domain','no_follow',
+                    'send_replies',  'author_created_utc', 'author_fullname', 
+                    'subreddit_id',
+                    'permalink','url']
+
+    s=s[cols_order_subs]
+
+    # parsing utc dates
+    s['created']=s.created_utc.apply(date_parser_utc)
+    s['created']=pd.to_datetime(s.created)
+    s.index=s.created
+    s['author_created']=s.author_created_utc.fillna(1461114906).apply(date_parser_utc)
+    s['author_created']=pd.to_datetime(s.author_created)
+    s.loc[s['author_created']==date_parser_utc(1461114906),'author_created']=None
+
+    #drop utc dates
+    s=s.drop(columns=['created_utc','author_created_utc'])
+
+    #define categories for lower ram usage
+    #s.subreddit=s.subreddit.astype('category')
+    s.domain=s.domain.astype('category')
+    s.no_follow=s.no_follow.astype('category')
+    s.send_replies=s.send_replies.astype('category')
+    s.subreddit_id=s.subreddit_id.astype('category')
+    return s
+
+
+def date_decomposition(s):
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    s['year']=s.created.dt.year.values
+    s['month']=s.created.dt.month.values
+    s['month_name']=s.created.dt.month_name().str.slice(stop=3)
+    s['month_name'] = pd.Categorical(s['month_name'], categories=months, ordered=True)
+    s['day']=s.created.dt.day.values
+    s['day_name']=s.created.dt.day_name().values
+    s['day_name'] = pd.Categorical(s['day_name'], categories=days, ordered=True)
+    s['week']=s.created.dt.isocalendar().week.values
+    s['day_of_week']=s.created.dt.dayofweek.values
+    s['hour']=s.created.dt.hour.values
+    s['minute']=s.created.dt.minute.values
+    return s
+
 def decompose_zstd_streaming(zst_files, subreddits_list):
-    
+    """
+    Streaming decomposision function from PlusShift Database    
+    """
     for file_no,zst_file_path in enumerate(zst_files):
         slist=[]
         df_out=pd.DataFrame()
@@ -60,10 +123,11 @@ def decompose_zstd_streaming(zst_files, subreddits_list):
         df_out.to_csv(f'{name}_crypto_subreddits.csv')
 
         
-
-def date_parser_utc(x):return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
-
+# Connecting to Reddit API
 def access_reddit():
+    """
+    Connecting to Reddit API
+    """
     reddit = praw.Reddit(client_id="f0b33JSRVGyB8p-ua4_58g",#my client id
                         client_secret="H6vEPyKbzDASg9G5hlAi7WoKdAE58g",  #your client secret
                         user_agent="Scraping Script 101 by u/Icy_Caterpilla4076", #user agent name
@@ -76,7 +140,7 @@ def access_reddit():
 
 def get_subreddit(start:str, end:str, subreddit:str,*args, **kwargs):
     """
-    Get data from a subreddit
+    Get data from a subreddit throught the API
     """
 
     #Define Default args
@@ -130,7 +194,7 @@ def get_subreddit(start:str, end:str, subreddit:str,*args, **kwargs):
 
 def get_comments(submissions):
     """
-    submissions: reddit.submission object list
+    Getting the comments from a submissions id list.
     """
     submissionList = []
     for s in submissions:
@@ -164,3 +228,4 @@ def get_comments(submissions):
     return c
 
     
+
