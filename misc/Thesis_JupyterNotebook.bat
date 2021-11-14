@@ -1,5 +1,5 @@
 C:
 cd C:\Users\Ben\Desktop\Diplomatiki\
-call activate thesis
+call activate CryptoSent
 call jupyter notebook
 pause
