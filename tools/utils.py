@@ -88,30 +88,23 @@ def merge_comments(data_bank_path):
 
 
 
-
-
-def get_submissions_raw(): return pd.read_csv(
-    r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\submissions_2019__2021_06.csv")
-
-
-def get_comments_raw(): return pd.read_csv(
-    r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments_2019__2021_06.csv")
-
-
-def date_parser_utc(x): return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
-
-
-
-
 def submission_raw_processing(s):
     """
     input get_submission_raw for first level processing
     """
-    # col drop
-    s = s.drop(columns=['Unnamed: 0', 'domain.1'])
-
+    crypto_subreddits=['Bitcoin','CryptoCurrency','btc','CryptoMarkets','bitcoinbeginners',
+                   'CryptoCurrencies','altcoin','icocrypto','CryptoCurrencyTrading','Crypto_General',
+                   'ico','blockchain','ethereum','Ripple','litecoin','Monero','Stellar','CryptoCurrencyClassic']
+                   
+    s=s[s.subreddit.isin(crypto_subreddits)]
+    s=s.loc[:,~s.columns.duplicated()]
+    try:
+        # col drop
+        s = s.drop(columns=['Unnamed: 0', 'domain.1'])
+    except:
+        pass
     # cols order
-    cols_order_subs = ['created_utc', 'author',
+    cols_order_subs = ['created_utc', 'author','all_awardings',
                        'num_comments', 'score', 'title', 'selftext',
                        'subreddit', 'subreddit_subscribers', 'id',
                        'domain', 'no_follow',
@@ -133,7 +126,7 @@ def submission_raw_processing(s):
     s = s.drop(columns=['created_utc', 'author_created_utc'])
 
     # define categories for lower ram usage
-    # s.subreddit=s.subreddit.astype('category')
+    s.subreddit=s.subreddit.astype('category')
     s.domain = s.domain.astype('category')
     s.no_follow = s.no_follow.astype('category')
     s.send_replies = s.send_replies.astype('category')
@@ -157,6 +150,18 @@ def date_decomposition(s):
     s['hour'] = s.created.dt.hour.values
     s['minute'] = s.created.dt.minute.values
     return s
+
+
+def get_submissions_raw(): return pd.read_csv(
+    r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\submissions_2019__2021_06.csv")
+
+
+def get_comments_raw(): return pd.read_csv(
+    r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments_2019__2021_06.csv")
+
+
+def date_parser_utc(x): return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
+
 
 
 def decompose_zstd_streaming(zst_files, subreddits_list):
