@@ -102,17 +102,48 @@ def date_parser_utc(x): return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %
 
 
 
+awards_attribute_dict={'name':0,
+                       'description':1,
+                       'count':2,
+                       'coin_price':3,
+                       'coin_reward':4}
+
+def award_extraction(x,att):
+    if x=='Empty': return 'Empty'
+    elif len(x)==1:return x[0][awards_attribute_dict[att]]
+    else: return list(zip(*x))[awards_attribute_dict[att]]
+
+
 
 def submission_raw_processing(s):
     """
     input get_submission_raw for first level processing
     """
-    # col drop
-    s = s.drop(columns=['Unnamed: 0', 'domain.1'])
+    crypto_subreddits=['Bitcoin','CryptoCurrency','btc','CryptoMarkets','bitcoinbeginners',
+                   'CryptoCurrencies','altcoin','icocrypto','CryptoCurrencyTrading','Crypto_General',
+                   'ico','blockchain','ethereum','Ripple','litecoin','Monero','Stellar','CryptoCurrencyClassic']
+                   
+    s=s[s.subreddit.isin(crypto_subreddits)]
+    s=s.loc[:,~s.columns.duplicated()]
+
+    s['award_name']=s.all_awardings.apply(lambda x: award_extraction(x,'name'))
+    s['award_description']=s.all_awardings.apply(lambda x: award_extraction(x,'description'))
+    s['award_count']=s.all_awardings.apply(lambda x: award_extraction(x,'count'))
+    s['award_coin_price']=s.all_awardings.apply(lambda x: award_extraction(x,'coin_price'))
+    s['award_coin_reward']=s.all_awardings.apply(lambda x: award_extraction(x,'coin_reward'))
+
+
+    try:
+        # col drop
+        s = s.drop(columns=['Unnamed: 0', 'domain.1'])
+    except:
+        pass
 
     # cols order
     cols_order_subs = ['created_utc', 'author',
                        'num_comments', 'score', 'title', 'selftext',
+                       'award_name','award_description','award_count',
+                       'award_coin_price','award_coin_reward',
                        'subreddit', 'subreddit_subscribers', 'id',
                        'domain', 'no_follow',
                        'send_replies', 'author_created_utc', 'author_fullname',
