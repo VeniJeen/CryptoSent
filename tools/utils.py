@@ -172,6 +172,53 @@ def submission_raw_processing(s):
     return s
 
 
+def comments_raw_processing(s):
+    """
+    input get_submission_raw for first level processing
+    """
+    crypto_subreddits=['Bitcoin','CryptoCurrency','btc','CryptoMarkets','bitcoinbeginners',
+                   'CryptoCurrencies','altcoin','icocrypto','CryptoCurrencyTrading','Crypto_General',
+                   'ico','blockchain','ethereum','Ripple','litecoin','Monero','Stellar','CryptoCurrencyClassic']
+                   
+    s=s[s.subreddit.isin(crypto_subreddits)]
+    s=s.loc[:,~s.columns.duplicated()]
+
+    s['award_name']=s.all_awardings.apply(lambda x: award_extraction(x,'name'))
+    s['award_description']=s.all_awardings.apply(lambda x: award_extraction(x,'description'))
+    s['award_count']=s.all_awardings.apply(lambda x: award_extraction(x,'count'))
+    s['award_coin_price']=s.all_awardings.apply(lambda x: award_extraction(x,'coin_price'))
+    s['award_coin_reward']=s.all_awardings.apply(lambda x: award_extraction(x,'coin_reward'))
+    s=s.drop(columns='all_awardings')
+
+    try:
+        # col drop
+        s = s.drop(columns=['Unnamed: 0', 'domain.1'])
+    except:
+        pass
+
+
+
+    # parsing utc dates
+    s['created'] = s.created_utc.apply(date_parser_utc)
+    s['created'] = pd.to_datetime(s.created)
+    s.index = s.created
+    s['author_created'] = s.author_created_utc.fillna(1461114906).apply(date_parser_utc)
+    s['author_created'] = pd.to_datetime(s.author_created)
+    s.loc[s['author_created'] == date_parser_utc(1461114906), 'author_created'] = None
+
+    # drop utc dates
+    s = s.drop(columns=['created_utc', 'author_created_utc'])
+
+    # define categories for lower ram usage
+    # s.subreddit=s.subreddit.astype('category')
+    #s.domain = s.domain.astype('category')
+    s.no_follow = s.no_follow.astype('category')
+    #s.send_replies = s.send_replies.astype('category')
+    s.subreddit_id = s.subreddit_id.astype('category')
+    return s
+
+
+
 def date_decomposition(s):
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
