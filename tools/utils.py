@@ -98,7 +98,7 @@ def get_comments_raw(): return pd.read_csv(
     r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments_2019__2021_06.csv")
 
 
-def date_parser_utc(x): return dt.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
+def date_parser_utc(x): return datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S')
 
 
 
@@ -216,6 +216,7 @@ def comments_raw_processing(s):
     #s.send_replies = s.send_replies.astype('category')
     s.subreddit_id = s.subreddit_id.astype('category')
     return s
+
 
 
 
