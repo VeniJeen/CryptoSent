@@ -24,12 +24,12 @@ def distil_bert(x, output='probs'):
 
 def distil_bert_df(df,text,output_type='probs'):
     if output_type == 'probs':
-        temp=df[text].progress_apply(lambda x: distil_bert(x,output=output_type))
+        temp=df[text].progress_apply(lambda x: distil_bert(x,output=output_type));
         #df['neg_db']=temp.apply(lambda x: x[0])
         #df['pos_db']=temp.apply(lambda x: x[1])
         df.loc[:,'neg_db']=temp.apply(lambda x: x[0])
         df.loc[:,'pos_db']=temp.apply(lambda x: x[1])
         return df
     else:
-       df['sent_db']=df[text].progress_apply(lambda x: distil_bert(x,output=output_type))
+       df['sent_db']=df[text].progress_apply(lambda x: distil_bert(x,output=output_type));
        return df

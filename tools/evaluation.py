@@ -37,7 +37,7 @@ def get_ts_2axis(sent,btc,resample_period='w',btc_transformation='diff'):
 
     if btc_transformation=='pct_change':
         fig.add_trace(
-            go.Scatter(x=btc.index, y=btc.pct_change(), name="Bitcoin Avg"),
+            go.Scatter(x=btc.index, y=btc.pct_change(), name=f"Bitcoin {btc_transformation}"),
             secondary_y=True,
         )
     # Add figure title
@@ -50,9 +50,21 @@ def get_ts_2axis(sent,btc,resample_period='w',btc_transformation='diff'):
 
     # Set y-axes titles
     fig.update_yaxes(title_text="<b>Sentiment  </b>", secondary_y=False)
-    fig.update_yaxes(title_text="<b>BTC Price</b>", secondary_y=True)
+    fig.update_yaxes(title_text=f"<b>BTC Price {btc_transformation}</b>", secondary_y=True)
 
     fig.show()
+
+def result_processing(sentiment,coin_price,resample_period='d'):
+    sdmin=datetime.strftime(sentiment.index.min(),'%Y-%m-%d')
+    sdmax=datetime.strftime(sentiment.index.max(),'%Y-%m-%d')
+    sent=sentiment.resample(resample_period).sum()
+    btc=coin_price[sdmin:sdmax].resample(resample_period).mean()
+    merres=pd.concat([sent,btc],axis=1)
+    merres.loc[:,'avg_hl_diff']=merres.avg_hl.diff()
+    merres.loc[:,'avg_hl_pct_change']=merres.avg_hl.pct_change()
+    merres.loc[:,'sent_db_shift']=sent.shift(1)
+    merres.loc[:,'sent_db_ptc_change']=sent.pct_change()
+    return merres
 
 
 def get_granger_causality(data ,maxlag=4, test='ssr_chi2test', verbose=False):
@@ -72,3 +84,4 @@ def get_granger_causality(data ,maxlag=4, test='ssr_chi2test', verbose=False):
                 psave.append(p_values)
     df=pd.DataFrame(np.array(psave).T,columns=cols)
     return df
+
