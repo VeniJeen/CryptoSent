@@ -1,4 +1,4 @@
-from platform import dist
+#from platform import dist
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 from tqdm import tqdm
