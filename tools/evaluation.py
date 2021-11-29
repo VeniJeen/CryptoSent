@@ -40,6 +40,12 @@ def get_ts_2axis(sent,btc,resample_period='w',btc_transformation='diff'):
             go.Scatter(x=btc.index, y=btc.pct_change(), name=f"Bitcoin {btc_transformation}"),
             secondary_y=True,
         )
+
+    if btc_transformation=='none':
+        fig.add_trace(
+            go.Scatter(x=btc.index, y=btc, name=f"Bitcoin {btc_transformation}"),
+            secondary_y=True,
+        )
     # Add figure title
     fig.update_layout(
         title_text=f"BTC vs Sentiment - Resample ({resample_period})"
