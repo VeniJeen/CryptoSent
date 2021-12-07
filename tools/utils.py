@@ -11,10 +11,45 @@ import datetime
 from os import listdir
 from os.path import isfile, join
 import ast
+import re
+import spacy #load spacy
+nlp = spacy.load("en_core_web_sm", disable=['parser', 'tagger', 'ner'])
+#stops = stopwords.words("english")
+from spacy.lang.en.stop_words import STOP_WORDS
+regex_magic= lambda x: ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)"," ",x).split())
 
 
 def test():
     print('aa23a')
+
+
+
+def text_preprocessing_spacy(comment, remove_stopwords):
+    comment = comment.lower()
+    comment=re.sub(r'http\S+', '', comment)
+    comment=regex_magic(comment)
+    comment = nlp(comment)
+    lemmatized = list()
+    for word in comment:
+        lemma = word.lemma_.strip()
+        if lemma:
+            if not remove_stopwords or (remove_stopwords and lemma not in STOP_WORDS):
+                lemmatized.append(lemma)
+    out=" ".join(lemmatized)
+    return out
+
+
+def result_processing(sentiment,coin_price,resample_period='d'):
+    sdmin=datetime.datetime.strftime(sentiment.index.min(),'%Y-%m-%d')
+    sdmax=datetime.datetime.strftime(sentiment.index.max(),'%Y-%m-%d')
+    sent=sentiment.resample(resample_period).sum()
+    btc=coin_price[sdmin:sdmax].resample(resample_period).mean()
+    merres=pd.concat([sent,btc],axis=1)
+    merres.loc[:,'avg_hl_diff']=merres.avg_hl.diff()
+    merres.loc[:,'avg_hl_pct_change']=merres.avg_hl.pct_change()
+    merres.loc[:,'sent_db_shift']=sent.shift(1)
+    merres.loc[:,'sent_db_ptc_change']=sent.pct_change()
+    return merres
 
 def get_awards(x):
     """
