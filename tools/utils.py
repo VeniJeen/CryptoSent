@@ -24,6 +24,14 @@ def test():
 
 
 
+def load_submissions():
+    return pd.read_pickle(r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\submissions.pickle")
+
+    
+def load_comments():
+    return pd.read_pickle(r"C:\Users\Ben\Desktop\Diplomatiki\CryptoSent\Datasets\Main Dataset\comments.pickle")
+
+
 def text_preprocessing_spacy(comment, remove_stopwords):
     comment = comment.lower()
     comment=re.sub(r'http\S+', '', comment)

@@ -6,3 +6,5 @@ Papers
 Predictions/.darts
 Overleaf
 *.xlsx
+*.tar
+Predictions/Darts/.darts/runs/Air_RNN/events.out.tfevents.1639941608.DESKTOP-R3M0IG7.17984.49

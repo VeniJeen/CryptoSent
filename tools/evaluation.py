@@ -91,3 +91,37 @@ def get_granger_causality(data ,maxlag=4, test='ssr_chi2test', verbose=False):
     df=pd.DataFrame(np.array(psave).T,columns=cols)
     return df
 
+
+
+####### Time Series Evaluation Metrics #######
+
+def errors(x,Y):
+    return [Y[i]-x[i] for i in range(len(x))]
+
+def abolute_errors(x,Y):
+    return [abs(Y[i]-x[i]) for i in range(len(x))]
+
+    
+def mean_error(x,Y):
+    return np.mean([Y[i]-x[i] for i in range(len(x))])
+
+from sklearn.metrics import mean_absolute_error as mae
+from sklearn.metrics import mean_absolute_percentage_error as mape
+from sklearn.metrics import r2_score as r2  
+from sklearn.metrics import mean_squared_error as mse   #squared=False:rmse
+#from sklearn.metrics import mean_squared_log_error as msle      #squared=False:rmsle
+
+evaluation_metrics=[mean_error,mae,mape,mse]
+evaluation_metrics_names=['me','mae','mape','mse','rmse']
+
+def evaluate_pred(x,Y,model_name='m1'):
+    scores=[]
+    for metric in evaluation_metrics:
+        scores.append(metric(x,Y))
+    scores.append(mse(x,Y,squared=False))
+    output=pd.DataFrame(
+        np.array(scores),
+        index=evaluation_metrics_names,
+        columns=[model_name])
+    return output
+
