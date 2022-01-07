@@ -1,0 +1,15 @@
+                                            mae	        mape	    mse	        rmse
+high_                                       2.074443	0.600107	0.060431	2.458269
+high_low_	                                1.245610	0.363061	0.024446	1.563537
+high_low_open_	                            1.014167	0.295747	0.017425	1.320056
+high_low_open_sent_db_	                    1.015901	0.296275	0.017337	1.316685
+high_low_open_sent_db_sent_dbe_surprise_	1.014813	0.295880	0.017395	1.318890
+
+high_low_open_sent_ntusd_coms_wavg_sent_dbe_joy_sent_db_	
+                                            1.011935	0.294965	0.017422	1.319931
+
+high_low_open_sent_ntusd_coms_wavg_sent_dbe_joy_sent_db_sent_dbe_surprise_	
+                                            1.010890	0.294586	0.017449	1.320949
+
+high_low_open_sent_ntusd_coms_wavg_sent_dbe_joy_sent_db_sell_sent_dbe_surprise_	
+                                            1.010893	0.294644	0.017625	1.327610
